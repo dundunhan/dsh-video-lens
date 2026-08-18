@@ -10,7 +10,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) plug
 | `video_analyze` | Content understanding: **scene-change-aware frame sampling** (`ffmpeg scdet`), **optional ASR transcript** (speech with timestamps), fused with any OpenAI-compatible vision model into structured evidence JSON. |
 | `video_ask` | **Time-anchored Q&A**: parses explicit time references ("at 3:20", "第2分钟") or locates relevant speech via transcript keyword matching, re-samples frames from the matched windows, and answers with grounded evidence (answer + confidence + supporting timestamps). |
 
-> v0.3.0. The plugin never locks you into a provider: vision and ASR are both OpenAI-compatible endpoints configured via `baseUrl` + `model` + key env var.
+> v0.3.1. The plugin never locks you into a provider: vision and ASR are both OpenAI-compatible endpoints configured via `baseUrl` + `model` + key env var.
 
 ## How it works
 
@@ -50,7 +50,7 @@ Either way, register the bundle in your profile's `package.json` — **this exac
 ```json
 {
   "dependencies": {
-    "dsh-video-lens": "^0.3.0"
+    "dsh-video-lens": "^0.3"
   },
   "dsh": {
     "profile": {
@@ -146,7 +146,7 @@ The agent calls `video_probe` first, then `video_analyze`. Evidence includes:
 
 ## Roadmap
 
-- v1.0: frame caching by file hash, test suite + CI, npm publish, evaluation table in README.
+- v1.0: frame caching by file hash, evaluation table in README (5 video types × metrics), publish to npm (in progress).
 - Beyond: native video-input models as an optional fast path when the configured VLM supports them.
 
 ## License

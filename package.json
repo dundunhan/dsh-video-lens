@@ -5,6 +5,12 @@
   "type": "module",
   "main": "src/index.js",
   "license": "MIT",
+  "author": "dundunhan",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dundunhan/dsh-video-lens.git"
+  },
+  "homepage": "https://github.com/dundunhan/dsh-video-lens",
   "engines": {
     "node": ">=20"
   },
