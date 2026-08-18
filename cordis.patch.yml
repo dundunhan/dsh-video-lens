@@ -1,0 +1,4 @@
+# dsh-video-lens bundle patch: mounts the plugin into the host profile.
+- insert:
+    - id: video-lens
+      name: 'dsh-video-lens'

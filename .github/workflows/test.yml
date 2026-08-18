@@ -1,0 +1,21 @@
+name: test
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Unit tests (pure functions)
+        run: node test/unit.test.mjs
+      - name: End-to-end tests (synthetic video, no API keys)
+        run: node test/e2e.test.mjs
