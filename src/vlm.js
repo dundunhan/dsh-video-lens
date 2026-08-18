@@ -68,11 +68,29 @@ export async function chatWithVision({
   }
 
   const body = await res.json()
-  const text = body?.choices?.[0]?.message?.content
+  const text = extractMessageContent(body?.choices?.[0]?.message)
   if (typeof text !== 'string' || text.length === 0) {
     throw new Error(`vision model returned no content: ${JSON.stringify(body).slice(0, 500)}`)
   }
   return text
+}
+
+// Some OpenAI-compatible endpoints return `content` as an array of parts
+// (e.g. `[{ type: "text", text: "..." }]`) instead of a plain string.
+// Accept both shapes; anything else resolves to undefined.
+export function extractMessageContent(message) {
+  const content = message?.content
+  if (typeof content === 'string') return content
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === 'string') return part
+        if (part && typeof part.text === 'string') return part.text
+        return ''
+      })
+      .join('')
+  }
+  return undefined
 }
 
 // Parses the VLM's analysis, tolerating markdown fences. Falls back to the

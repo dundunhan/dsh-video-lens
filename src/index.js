@@ -238,13 +238,14 @@ function registerVideoAnalyze(ctx, config) {
             jpegBytes: f.bytes,
           })),
           transcript:
-            transcript && transcript.segments && transcript.segments.length > 0
+            transcript && transcript.text
               ? {
                   text: transcript.text,
                   segments: transcript.segments,
                   language: transcript.language ?? null,
                 }
               : null,
+          transcriptError,
           visionModel: config.visionModel,
           ...parseAnalysis(raw),
         }
@@ -346,7 +347,17 @@ function registerVideoAsk(ctx, config) {
         let matchedSegments = []
         let windows = []
         if (explicit) {
-          windows = [{ start: explicit.start, end: explicit.end }]
+          // Clamp explicit windows to the video duration; refuse windows that
+          // fall entirely outside it with a clear, actionable error.
+          const start = Math.max(0, Math.min(explicit.start, duration))
+          const end = Math.max(0, Math.min(explicit.end, duration))
+          if (end <= start || start >= duration) {
+            return (
+              `ERROR: requested time window [${explicit.start}s-${explicit.end}s] falls entirely ` +
+              `outside the video duration (${Math.round(duration)}s).`
+            )
+          }
+          windows = [{ start, end }]
         } else if (transcript && transcript.text) {
           const normSegments = transcript.segments.map((s) =>
             s.end == null ? { ...s, end: duration } : s,

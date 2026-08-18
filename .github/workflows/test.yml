@@ -17,5 +17,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
       - name: Unit tests (pure functions)
         run: node test/unit.test.mjs
+      - name: Network-layer tests (fetch stubs, no API keys)
+        run: node test/network.test.mjs
       - name: End-to-end tests (synthetic video, no API keys)
         run: node test/e2e.test.mjs

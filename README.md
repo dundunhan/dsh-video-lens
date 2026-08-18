@@ -30,15 +30,36 @@ video file ──► video_probe ──► ffprobe ──► compact metadata JS
 
 Prerequisites: Node.js ≥ 20, `ffmpeg` ≥ 6.0 (recommended) with `ffprobe` on PATH (`brew install ffmpeg` / `apt install ffmpeg`).
 
-Mount the plugin into a DSH profile via its bundle patch. In your profile's `package.json`:
+### Option A — npm (recommended)
+
+```bash
+# in your DSH profile directory (the one containing package.json)
+pnpm add dsh-video-lens
+```
+
+### Option B — from source (development)
+
+Clone the repo, then mount it into your DSH profile via a local link:
+
+```bash
+git clone https://github.com/dundunhan/dsh-video-lens.git
+```
+
+Either way, register the bundle in your profile's `package.json` — **this exact block is the full profile configuration**:
 
 ```json
 {
   "dependencies": {
-    "dsh-video-lens": "link:/absolute/path/to/dsh-video-lens"
+    "dsh-video-lens": "^0.3.0"
   },
   "dsh": {
-    "profile": { "bundles": ["@deepseek-ai/dsh-base", "@deepseek-ai/dsh-web-app", "dsh-video-lens"] }
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-video-lens"
+      ]
+    }
   }
 }
 ```
@@ -121,7 +142,7 @@ The agent calls `video_probe` first, then `video_analyze`. Evidence includes:
 ## Uninstall
 
 1. Remove `dsh-video-lens` from `dsh.profile.bundles` in your profile `package.json`.
-2. Remove the `link:` dependency and reinstall the profile.
+2. Remove the dependency: `pnpm remove dsh-video-lens` (npm install) — or delete the `link:` entry if you installed from source — then reinstall the profile.
 
 ## Roadmap
 
