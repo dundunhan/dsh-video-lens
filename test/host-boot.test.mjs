@@ -183,7 +183,16 @@ async function main() {
       },
     }, null, 2)}\n`)
     await writeFile(join(profileDir, 'pnpm-workspace.yaml'), 'packages:\n  - .\n\nnodeLinker: hoisted\nautoInstallPeers: false\n')
-    await mustRun(PNPM, ['install', '--reporter=append-only'], { cwd: profileDir, env: npmEnv })
+    const pnpmInstall = await run(PNPM, ['install', '--reporter=append-only'], { cwd: profileDir, env: npmEnv })
+    if (pnpmInstall.code !== 0) {
+      // The most common environment failure is pnpm outrunning Node (pnpm 11
+      // needs Node >= 22.13 for node:sqlite), which is not a plugin defect —
+      // say so instead of only dumping the pnpm stack.
+      const hint = /node:sqlite|requires at least Node/u.test(pnpmInstall.output)
+        ? `\nhint: this pnpm is too new for ${process.version} — pnpm 11 requires Node >= 22.13 while the plugin itself supports Node >= 20. Run this leg on Node >= 22.13, or point PNPM_BIN at an older pnpm.`
+        : ''
+      fail(`${PNPM} install exited with ${pnpmInstall.code}${hint}\n${pnpmInstall.output}`)
+    }
 
     const installed = JSON.parse(await readFile(join(profileDir, 'node_modules', 'dsh-video-lens', 'package.json'), 'utf8'))
     log(`profile installed dsh-video-lens@${installed.version}`)
