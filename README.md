@@ -10,7 +10,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) plug
 | `video_analyze` | Content understanding: **scene-change-aware frame sampling** (`ffmpeg scdet`), **optional ASR transcript** (speech with timestamps), fused with any OpenAI-compatible vision model into structured evidence JSON. |
 | `video_ask` | **Time-anchored Q&A**: parses explicit time references ("at 3:20", "第2分钟") or locates relevant speech via transcript keyword matching, re-samples frames from the matched windows, and answers with grounded evidence (answer + confidence + supporting timestamps). |
 
-> v0.3.1. The plugin never locks you into a provider: vision and ASR are both OpenAI-compatible endpoints configured via `baseUrl` + `model` + key env var.
+> v0.3.2. The plugin never locks you into a provider: vision and ASR are both OpenAI-compatible endpoints configured via `baseUrl` + `model` + key env var.
 
 ## How it works
 
@@ -70,6 +70,8 @@ Then export the keys and restart the profile:
 export VIDEO_LENS_API_KEY=sk-...        # vision
 export VIDEO_LENS_ASR_KEY=sk-...        # optional, ASR
 ```
+
+> **Do not install the host runtime yourself.** `@deepseek-ai/dsh-tools` is declared as an **optional peer**: the plugin always uses the `dsh-tools` that already ships with your DSH installation / DSH Desktop. Adding it to your profile as a dependency — or pinning one exact `-rc` version, which is what 0.3.1 did — installs a second, older runtime next to the host's, makes the Loader entry fail to import, and takes the whole plugin tree (and the app) down with it.
 
 ## Configuration
 
@@ -135,9 +137,28 @@ The agent calls `video_probe` first, then `video_analyze`. Evidence includes:
 ## Compatibility
 
 - Tested with DSH profile bundles `@deepseek-ai/dsh-base` + `@deepseek-ai/dsh-web-app`.
+- Host runtime is **not pinned**: `@deepseek-ai/dsh-tools` is an optional peer resolved from the host installation, so the plugin follows the core it is loaded by (verified against core `0.1.0-rc.7` and `0.1.5-rc.2`, the upstream version DSH Desktop 2.0.5 pins).
 - Node ≥ 20 (uses `AbortSignal.any` / built-in `fetch` / `FormData`).
 - ffmpeg ≥ 6.0 for `scdet`; older versions degrade to uniform sampling.
-- macOS / Linux tested; Windows untested.
+- macOS verified. Windows: the 0.3.1 boot failure reported on Windows was **not** platform-specific — it was the pinned old `dsh-tools` runtime (see Troubleshooting); the code paths themselves are OS-neutral (`ffmpeg`/`ffprobe` are spawned via argv, no shell).
+
+## Troubleshooting
+
+**`dsh-plugin-desktop: plugin tree failed to load: failed to apply loader entry include (cordis:include): AggregateError: loader entries failed to apply` — the client no longer starts.**
+
+0.3.1 hit this on DSH Desktop 2.0.5. The full error underneath is an import failure of the plugin (or of the host `tools` entry):
+
+```
+failed to import loader entry video-lens (dsh-video-lens): The requested module '@deepseek-ai/dsh-llm' does not provide an export named 'CallId'
+  [cause]: profiles/<name>/node_modules/@deepseek-ai/dsh-tools/lib/index.js:4
+```
+
+Cause: 0.3.1 pinned `@deepseek-ai/dsh-tools@0.1.0-rc.7`, so the profile got a second, older `dsh-tools` while the host ran a newer core (`0.1.5-rc.2`). Any failing Loader entry fails the whole tree, so the app cannot boot until the plugin is removed.
+
+Recovery (0.3.1 installed and the app will not start):
+
+1. Use the client's Recovery page to return to the last healthy profile, **or** remove the plugin from the profile: `dsh plugin --profile <name> remove dsh-video-lens` (Desktop: run that in its terminal).
+2. Install `dsh-video-lens@^0.3.2`, where the host runtime is an optional peer and nothing is installed into the profile.
 
 ## Uninstall
 

@@ -1,6 +1,6 @@
 {
   "name": "dsh-video-lens",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Give text-only DeepSeek Harness agents video understanding: scene-aware frame sampling + VLM + optional ASR transcript fused into timeline evidence. / 给纯文本模型的视频理解插件（场景感知抽帧 + VLM + 可选语音转录）",
   "type": "module",
   "main": "src/index.js",
@@ -22,7 +22,7 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "test": "node test/unit.test.mjs && node test/network.test.mjs && node test/e2e.test.mjs"
+    "test": "node test/packaging.test.mjs && node test/unit.test.mjs && node test/network.test.mjs && node test/e2e.test.mjs"
   },
   "keywords": [
     "dsh",
@@ -34,8 +34,15 @@
     "ffmpeg"
   ],
   "dependencies": {
-    "@deepseek-ai/dsh-tools": "0.1.0-rc.7",
     "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.1.0-rc.7"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    }
   },
   "dsh": {
     "bundle": {
