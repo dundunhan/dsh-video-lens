@@ -15,6 +15,8 @@ jobs:
           node-version: 20
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Packaging contract (host runtime stays a peer, never installed)
+        run: node test/packaging.test.mjs
       - name: Unit tests (pure functions)
         run: node test/unit.test.mjs
       - name: Network-layer tests (fetch stubs, no API keys)
