@@ -23,3 +23,35 @@ jobs:
         run: node test/network.test.mjs
       - name: End-to-end tests (synthetic video, no API keys)
         run: node test/e2e.test.mjs
+
+  # The crash this guards against (0.3.1 on DSH Desktop 2.0.5) passed every
+  # manifest check and only appeared when a real host loaded the plugin tree.
+  # Each leg packs the plugin, installs it into a throwaway profile under the
+  # Desktop profile contract, and boots that profile with a real DSH host.
+  host-boot-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # npm dist-tag `latest`: the core most users install today.
+          - core: latest
+            label: latest
+          # The oldest core this plugin still claims to support.
+          - core: '0.1.0-rc.7'
+            label: '0.1.0-rc.7'
+          # Upstream core the current DSH Desktop release pins; skipped with a
+          # notice if the manifest cannot be read (never fails on network luck).
+          - core: desktop-stable
+            label: DSH Desktop upstream
+    name: host boot smoke (${{ matrix.label }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - name: Boot a real host with the plugin mounted
+        run: node test/host-boot.test.mjs "${{ matrix.core }}"

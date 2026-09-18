@@ -160,6 +160,18 @@ Recovery (0.3.1 installed and the app will not start):
 1. Use the client's Recovery page to return to the last healthy profile, **or** remove the plugin from the profile: `dsh plugin --profile <name> remove dsh-video-lens` (Desktop: run that in its terminal).
 2. Install `dsh-video-lens@^0.3.2`, where the host runtime is an optional peer and nothing is installed into the profile.
 
+## Testing
+
+```bash
+npm test                                     # packaging + unit + network + e2e (needs ffmpeg)
+node test/host-boot.test.mjs latest          # boot a real host with the plugin mounted
+node test/host-boot.test.mjs 0.1.0-rc.7      # exactly one core version
+node test/host-boot.test.mjs desktop-stable  # the upstream core DSH Desktop currently pins
+```
+
+- `test/packaging.test.mjs` — manifest contract: official host runtime packages (`@deepseek-ai/dsh-*`) must stay **optional peers**, never installed dependencies, and the published bundle patch / entry must resolve.
+- `test/host-boot.test.mjs` — end-to-end guard: packs the plugin, installs it into a throwaway profile under the DSH Desktop profile contract (`nodeLinker: hoisted`, `autoInstallPeers: false`), then boots that profile with a real DSH host and requires the Web surface to come up — while asserting the profile installed **no** host runtime package. Needs `pnpm` on PATH (or `PNPM_BIN`) and network access; no API keys and no ffmpeg. CI runs it for `latest`, `0.1.0-rc.7`, and the core currently pinned by DSH Desktop.
+
 ## Uninstall
 
 1. Remove `dsh-video-lens` from `dsh.profile.bundles` in your profile `package.json`.
