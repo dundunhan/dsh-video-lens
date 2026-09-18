@@ -208,9 +208,21 @@ async function main() {
     }
 
     // 4. Install the real host and boot the profile with it.
+    //    pnpm installs the host too: it resolves the ~200-package core graph in
+    //    seconds, where npm's resolver can spend ten minutes on an older
+    //    prerelease graph and, with `--legacy-peer-deps`, leaves peer-provided
+    //    packages missing (`@deepseek-ai/cordis-plugin-group`) so the host
+    //    cannot start. The Profile install above is what must stay faithful to
+    //    the Desktop contract; how the host's own tree is materialized is not.
     const hostDir = join(temp, 'host')
     await mkdir(hostDir, { recursive: true })
-    await mustRun(NPM, ['install', '--no-audit', '--no-fund', '--prefix', hostDir, `@deepseek-ai/dsh@${version}`], { env: npmEnv })
+    await writeFile(join(hostDir, 'package.json'), `${JSON.stringify({ name: 'dsh-host-smoke', private: true }, null, 2)}\n`)
+    // strictDepBuilds: false — the host's native build scripts (node-pty,
+    // koffi, subprocess-local, ...) are irrelevant to mounting a profile and
+    // serving the Web surface, and pnpm 11 otherwise fails the install for
+    // skipping them.
+    await writeFile(join(hostDir, 'pnpm-workspace.yaml'), 'packages:\n  - .\nstrictDepBuilds: false\n')
+    await mustRun(PNPM, ['add', `@deepseek-ai/dsh@${version}`, '--reporter=append-only'], { cwd: hostDir, env: npmEnv })
     const binPath = join(hostDir, 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js')
     await access(binPath)
     const port = await freePort()
